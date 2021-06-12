@@ -14,8 +14,6 @@ username=str(input("Plase enter your username : "))
 password=str(input("Plase enter your password : "))
 
 
-frequency = int(input("Pleas enter frequency gap between the zone : "))
-lot_side = float(input("Pleas enter lot side of the order : "))
 print("Current OTP:", pyotp.TOTP(QR).now())
 pd.set_option('display.max_columns', None)
 login = r.login(username,password)
@@ -29,30 +27,40 @@ bid = int(float('%.2f' % (bid/10000))* 10000)
 
 #------------------------------------------------------------------------
 
-def check():
+def check(Start_buy,Start_sell):
     Open = pd.DataFrame(data = Open_order[['side']])
     BUY = min(min(Open.values.tolist()))
     SELL = max(max(Open.values.tolist()))
+    low = Open_order[['price','side']].groupby(['side']).min()
+    lower_zone = int('%.d' % (float(min(low.values.tolist()[0]))))
+    high = Open_order[['price','side']].groupby(['side']).max()
+    print("Your BTC lowest zone is", lower_zone)
+    min_sell = int('%.d' % (float(min(low.values.tolist()[1]))))
     if BUY == "buy":
-        low = Open_order[['price','side']].groupby(['side']).min()
-        lower_zone = int('%.d' % (float(max(low.values.tolist()[0]))))
-        high = Open_order[['price','side']].groupby(['side']).max()
         max_buy = int('%.d' % (float(max(high.values.tolist()[0]))))
-        print("Your BTC lowest zone is", lower_zone)
         buying = max_buy
-        selling = max_buy + 200
+        if SELL == "sell":
+            selling = min_sell
+        else:
+            selling = buy_max + 200
+        return(buying,selling)
     else:
-        buying = int(input("Plase enter the BTC price that you want to buy as lowest zone: "))
-        r.order_buy_crypto_limit('BTC',lot_side,buying)
-        selling = 0
-    return(buying,selling)
+        buying = Start_buy
+        if SELL == "sell":
+            selling = min_sell
+        else:
+            selling = int(input("There are some BTC in the port. How much do you want to sell : "))
+        return(buying,selling)
 
-def BUY(buying,frequency):
+def BUY(buying,frequency,Start_buy):
     while (buying <= bid-200):
-        buying = buying + frequency
-        r.order_buy_crypto_limit('BTC',lot_side,buying)
-        print("Buy : ", buying)
-        time.sleep(1)
+        if buying <= Start_buy:
+            print("Your buy orders are matched")
+        else:
+            buying = buying + frequency
+            r.order_buy_crypto_limit('BTC',lot_side,buying)
+            print("Buy : ", buying)
+            time.sleep(1)
     print("End of buying")
     
 def Open_order_report():
@@ -60,19 +68,28 @@ def Open_order_report():
     print("BTC avilible : ",Btc_avilable)
     
 def Sell(selling,frequency):
-    if((Btc_avilable-0.0001)>= 0):
-        while (selling >= ask+frequency):
+    BTC = pd.DataFrame(data =r.get_crypto_positions(info=None))
+    Btc_avilable = float(max(BTC['quantity_available'].tolist()))
+    while((Btc_avilable-0.00001)>= 0):
+        if (selling >= ask+100):
+            selling = selling - frequency
             r.order_sell_crypto_limit('BTC',lot_side,selling)
             print("Sell : ", selling)
+        BTC = pd.DataFrame(data =r.get_crypto_positions(info=None))
+        Btc_avilable = float(max(BTC['quantity_available'].tolist()))
     print("End of selling")
         
 def loop(frequency):
+    Start_buy = int(input("Plase enter the BTC price that you want to buy as lowest zone: "))
+    frequency = int(input("Pleas enter frequency gap between the zone : "))
+    lot_side = float(input("Pleas enter lot side of the order : "))
     for i in range (0,60):
-        buying,selling = check()
+        buying,selling = check(Start_buy)
         print(i+1 , "minutes")
-        BUY(buying,frequency)
+        BUY(buying,frequency,Start_buy)
         Sell(selling,frequency)
         Open_order_report()
         time.sleep(60)
-
+        
 loop(frequency)
+
