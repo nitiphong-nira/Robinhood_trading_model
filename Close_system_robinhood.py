@@ -50,8 +50,6 @@ def check(Start_buy):
             selling = buy_max + 200
         return(buying,selling)
     else:
-        print("----------")
-        time.sleep(10)
         buying = Start_buy
         if (Btc_avilable-0.00001)>= 0:
             if SELL == "sell":
@@ -95,7 +93,8 @@ def loop(Btc_avilable):
     Start_buy = int(input("Plase enter the BTC price that you want to buy as lowest zone: "))
     frequency = int(input("Pleas enter frequency gap between the zone : "))
     lot_side = float(input("Pleas enter lot side of the order : "))
-    for i in range (0,60):
+    a = int(input("How long (minutes) do you want to run the model : "))
+    for i in range (0,a):
         buying,selling = check(Start_buy)
         print(i+1 , "minutes")
         BUY(buying,frequency,Start_buy,lot_side)
