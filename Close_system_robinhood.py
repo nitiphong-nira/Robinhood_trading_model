@@ -83,7 +83,7 @@ def Sell(selling,frequency,Btc_avilable,lot_side):
     while((Btc_avilable-0.00001)>= 0):
         if (selling >= ask+100):
             selling = selling - frequency
-            #r.order_sell_crypto_limit('BTC',lot_side,selling)
+            r.order_sell_crypto_limit('BTC',lot_side,selling)
             print("Sell : ", selling)
         BTC = pd.DataFrame(data =r.get_crypto_positions(info=None))
         Btc_avilable = float(max(BTC['quantity_available'].tolist()))
