@@ -1,6 +1,6 @@
 # Robinhood_trading_model
-# Close system is the trading model that hard fork the idea from Mudley Group.
-# This method limits the risk of the model which can be used to scout or long term trading.
+Close system is the trading model that hard fork the idea from Mudley Group.
+This method limits the risk of the model which can be used to scout or long term trading.
 The model idea is diversifying the position into several price zones because different price zones have different risks when calculated by beta.
 The traders have to create their zone and their frequency of the zone by themselves and adjust by the time.
 
